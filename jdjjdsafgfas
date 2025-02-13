@@ -1,0 +1,559 @@
+local Orion = loadstring(game:HttpGet('https://raw.githubusercontent.com/linhmcalt/OrionLIbrary/refs/heads/main/orion%20library.txt'))()
+
+local Window = Orion:MakeWindow({Name = "LinhmcHub Renewed", HidePremium = false, SaveConfig = true, ConfigFolder = "OrionTest"})
+
+local Tab = Window:MakeTab({
+    Name = "Game",
+    Icon = "",
+    PremiumOnly = false
+})
+
+Tab:AddButton({
+    Name = "script by linhmc_new",
+    Callback = function()
+        local args = {
+            [1] = "Script By Linhmc_new",
+            [2] = "All"
+        }
+        game:GetService("ReplicatedStorage"):WaitForChild("DefaultChatSystemChatEvents"):WaitForChild("SayMessageRequest"):FireServer(unpack(args))
+    end    
+})
+
+local Section = Tab:AddSection({
+    Name = "Operator"
+})
+
+-- Tạo biến để kiểm soát vòng lặp
+local running = false
+
+Section:AddToggle({
+    Name = "LoopVoid Nonfriends",
+    Default = false,
+    Callback = function(Value)
+        running = Value -- Cập nhật trạng thái toggle
+        
+        if running then
+            -- Hiển thị thông báo từ Orion Library
+            Orion:MakeNotification({
+                Name = "!!!",
+                Content = "No No No No Wait Wait Wait Wait Wait", -- Thông báo nội dung này
+                Image = "", -- Bạn có thể đổi icon nếu muốn
+                Time = 3 -- Thời gian hiển thị thông báo (5 giây)
+            })
+            
+            -- Nếu toggle bật, chạy script liên tục với delay 0.01 giây
+            while running do
+                --//Services\\--
+                local ReplicatedStorage = game:GetService("ReplicatedStorage")
+                local Workspace = game:GetService("Workspace")
+                local Players = game:GetService("Players")
+                local LPlayer = Players.LocalPlayer
+
+                --//Variables\\--
+                local Remotes = ReplicatedStorage.Remotes
+                local StampAsset = Remotes.StampAsset
+                local Plates = Workspace.Plates
+                local LPlate
+
+                for _, Plate in pairs(Plates:GetChildren()) do
+                    if (Plate.Owner.Value == LPlayer) then
+                        LPlate = Plate.Plate
+                        break
+                    end
+                end
+
+                local Module = {}
+
+                function Module.Kill(Player)
+                    if (Player:IsA("Player")) then Player = Player.Character.PrimaryPart end
+                    StampAsset:InvokeServer(
+                        41324885,
+                        LPlate.CFrame - Vector3.new(0, 9e9, 0),
+                        "{99ab22df-ca29-4143-a2fd-0a1b79db78c2}",
+                        {Player},
+                        0
+                    )
+                end
+
+                -- Hàm kiểm tra người chơi có phải là bạn bè của bạn hay không
+                local function isFriend(player)
+                    return LPlayer:IsFriendsWith(player.UserId)
+                end
+
+                -- Target tất cả người chơi không phải là bạn bè
+                for _, player in ipairs(Players:GetPlayers()) do
+                    if player ~= LPlayer and not isFriend(player) then
+                        if player.Character and player.Character.PrimaryPart then
+                            Module.Kill(player.Character.PrimaryPart)
+                        end
+                    end
+                end
+                
+                -- Delay 0.01 giây trước khi lặp lại
+                wait()
+            end
+        end
+    end    
+})
+
+-- Tạo biến để kiểm soát vòng lặp
+local running = false
+local targetNames = {} -- Lưu danh sách các target
+
+-- Thêm 3 TextBox cho các target
+for i = 1, 3 do
+    Section:AddTextbox({
+        Name = "Target Player Name " .. i,
+        Default = "",
+        TextDisappear = false, -- Không clear TextBox sau khi nhập
+        Callback = function(value)
+            targetNames[i] = value:lower() -- Cập nhật tên của target
+        end
+    })
+end
+
+Section:AddToggle({
+    Name = "LoopVoidTarget",
+    Default = false,
+    Callback = function(Value)
+        running = Value -- Cập nhật trạng thái toggle
+        
+        if running then
+            -- Nếu toggle bật, chạy script liên tục với delay 0.01 giây
+            while running do
+                --//Services\\--
+                local ReplicatedStorage = game:GetService("ReplicatedStorage")
+                local Workspace = game:GetService("Workspace")
+                local Players = game:GetService("Players")
+                local LPlayer = Players.LocalPlayer
+
+                --//Variables\\--
+                local Remotes = ReplicatedStorage.Remotes
+                local StampAsset = Remotes.StampAsset
+                local Plates = Workspace.Plates
+                local LPlate
+
+                for _, Plate in pairs(Plates:GetChildren()) do
+                    if (Plate.Owner.Value == LPlayer) then
+                        LPlate = Plate.Plate
+                        break
+                    end
+                end
+
+                local Module = {}
+
+                function Module.Kill(Player)
+                    if (Player:IsA("Player")) then Player = Player.Character.PrimaryPart end
+                    StampAsset:InvokeServer(
+                        41324885,
+                        LPlate.CFrame - Vector3.new(0, 9e9, 0),
+                        "{99ab22df-ca29-4143-a2fd-0a1b79db78c2}",
+                        {Player},
+                        0
+                    )
+                end
+
+                -- Hàm kiểm tra xem tên hoặc display name của người chơi có bắt đầu bằng chuỗi nhập vào không
+                local function matchesTarget(player, targetName)
+                    local username = player.Name:lower()
+                    local displayName = player.DisplayName:lower()
+                    -- Kiểm tra nếu tên hoặc display name bắt đầu bằng chuỗi nhập
+                    return username:sub(1, #targetName) == targetName or displayName:sub(1, #targetName) == targetName
+                end
+
+                -- Tìm và kiểm tra từng target từ TextBox
+                for i, targetName in ipairs(targetNames) do
+                    if targetName and targetName ~= "" then -- Chỉ kiểm tra nếu target không rỗng
+                        local targetPlayer = nil
+                        for _, player in ipairs(Players:GetPlayers()) do
+                            if matchesTarget(player, targetName) then
+                                targetPlayer = player
+                                break
+                            end
+                        end
+
+                        -- Kiểm tra trạng thái của target (còn sống hoặc rời khỏi)
+                        if targetPlayer then
+                            if targetPlayer.Character and targetPlayer.Character.PrimaryPart then
+                                Module.Kill(targetPlayer.Character.PrimaryPart)
+                            end
+                        end
+                    end
+                end
+                
+                -- Delay 0.01 giây trước khi lặp lại
+                wait()
+            end
+        end
+    end    
+})
+local Section = Tab:AddSection({
+    Name = "exeploit"
+})
+
+Orion:Init() -- Khởi tạo Orion Library
+Tab:AddButton({
+	Name = "handlekill (not work on some executor)",
+	Callback = function()
+
+loadstring(game:HttpGet("https://raw.githubusercontent.com/Linhmcfake1/Kill-gui/main/Kill"))()
+end
+})
+
+Tab:AddButton({
+	Name = "claim all vip tool",
+	Callback = function()
+
+local player = game.Players.LocalPlayer
+local humanoidRootPart = player.Character.HumanoidRootPart
+local originalCFrame = humanoidRootPart.CFrame
+
+humanoidRootPart.CFrame = CFrame.new(-124.44989776611328, 17633.494140625, 9045.689453125)
+wait() 
+humanoidRootPart.CFrame = CFrame.new(-109.95501708984375, 17633.49609375, 9045.515625)
+wait()
+humanoidRootPart.CFrame = CFrame.new(-95.51972198486328, 17633.49609375, 9045.4931640625)
+wait()
+humanoidRootPart.CFrame = CFrame.new(-81.47074127197266, 17633.498046875, 9045.50390625)
+wait()
+humanoidRootPart.CFrame = CFrame.new(-87.52900695800781, 17633.4921875, 9223.5341796875)
+wait()
+humanoidRootPart.CFrame = CFrame.new(-99.24241638183594, 17633.5, 9223.49609375)
+wait(0.1)
+humanoidRootPart.CFrame = CFrame.new(-112.67101287841797, 17633.4921875, 9223.53515625)
+wait(0.1)
+humanoidRootPart.CFrame = CFrame.new(-105.40996551513672, 17633.5, 9356.6171875)
+wait(0.1)
+humanoidRootPart.CFrame = CFrame.new(-94.42718505859375, 17633.5, 9356.7421875)
+
+wait(0.1)
+humanoidRootPart.CFrame = originalCFrame
+end
+})
+
+
+Tab:AddButton({
+	Name = "claim 475 point (once per server)",
+	Callback = function()
+
+-- Lưu lại vị trí ban đầu của HumanoidRootPart
+local originalPosition = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame
+
+game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-65.8681411743164, 17634.498046875, 9359.7236328125)
+wait()
+game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-55.600982666015625, 17634.498046875, 9227.1826171875)
+wait()
+game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-38.66141891479492, 17634.49609375, 9048.8037109375)
+wait()
+
+game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = originalPosition
+end
+})
+
+Tab:AddButton({
+	Name = "reach (hold your sword before use this)",
+	Callback = function()
+
+game.StarterGui:SetCore("SendNotification", {
+    Title    = "Sword Reach Script Loaded by"; 
+    Text     = "You need to hold a tool when executing."; 
+    Icon     = ""; 
+    Duration = 300;
+    Callback = bindableFunction;
+    Button1  = "made by linhmcfake";  
+    Button2  = "alt account: linhmc_new";
+})
+for i,v in pairs(game:GetService'Players'.LocalPlayer.Character:GetChildren())do
+                if v:isA("Tool") then
+                    local a = Instance.new("SelectionBox",v.Handle)
+                    a.Adornee = v.Handle
+                    v.Handle.Size = Vector3.new(0.5,0.5,60)
+                    v.GripPos = Vector3.new(0,0,0)
+                    lplayer.Character.Humanoid:UnequipTools()
+                end
+end
+end
+})
+
+-- Dropdown để chọn người chơi
+local selectedPlayer = nil
+local playerList = {}
+
+local TeleportTab = Window:MakeTab({
+	Name = "movement",
+	Icon = "",
+	PremiumOnly = false
+})
+
+local Section = TeleportTab:AddSection({
+    Name = "Location"
+})
+
+-- Danh sách các vị trí teleport
+local teleports = {
+    {"VIP", CFrame.new(-85.99878692626953, 17633.498046875, 9349.5361328125)},
+    {"Mega VIP", CFrame.new(-86.5157241821289, 17633.498046875, 9215.1953125)},
+    {"Uber VIP", CFrame.new(-108.00, 17634.06, 9020.00)},
+    {"Secret Island", CFrame.new(-21.291458129882812, 0.3889467120170593, -5553.3359375)},
+    {"Leaderboard", CFrame.new(0.46162018179893494, 24.500017166137695, -220.42832946777344)}
+}
+
+local teleportNames = {}
+
+-- Lưu tên của các teleport để hiển thị trong dropdown
+for _, teleport in ipairs(teleports) do
+    table.insert(teleportNames, teleport[1])
+end
+
+-- Thêm ô selection (dropdown) cho teleport
+TeleportTab:AddDropdown({
+    Name = "Teleport Location",
+    Options = teleportNames,
+    CurrentOption = teleportNames[1],
+    Callback = function(selectedTeleport)
+        for _, teleport in ipairs(teleports) do
+            if teleport[1] == selectedTeleport then
+                -- Di chuyển người chơi tới vị trí đã chọn
+                game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = teleport[2]
+                break
+            end
+        end
+    end
+})
+
+local Section = TeleportTab:AddSection({
+    Name = "Player"
+})
+
+-- Phần để chọn người chơi, như đã đề cập trước đó
+local selectedPlayer = nil
+local playerList = {}
+
+local function updatePlayers()
+    local newPlayerList = {}
+    for _, player in pairs(game.Players:GetPlayers()) do
+        table.insert(newPlayerList, player.Name)
+    end
+    
+    playerList = newPlayerList
+    if PlayerDropdown then
+        PlayerDropdown:Refresh(playerList, true)
+    end
+end
+
+
+-- Liên tục cập nhật danh sách người chơi
+spawn(function()
+    while true do
+        updatePlayers()
+        wait(2) -- Cập nhật mỗi 2 giây
+    end
+end)
+
+local PlayerDropdown
+
+-- Hàm để cập nhật danh sách người chơi trong dropdown
+local function updatePlayers()
+	local newPlayerList = {}
+	for _, player in pairs(game.Players:GetPlayers()) do
+		table.insert(newPlayerList, player.Name)
+	end
+	
+	-- Làm mới danh sách người chơi
+	playerList = newPlayerList
+	if PlayerDropdown then
+		PlayerDropdown:Refresh(playerList, true)  -- Làm mới hoàn toàn với danh sách mới
+	end
+end
+
+-- Dropdown chọn người chơi
+PlayerDropdown = TeleportTab:AddDropdown({
+	Name = "goto target",
+	Default = "",
+	Options = playerList,
+	Callback = function(value)
+		selectedPlayer = value
+	end
+})
+
+-- Nút teleport
+TeleportTab:AddButton({
+	Name = "goto",
+	Callback = function()
+		if selectedPlayer then
+			local speaker = game.Players.LocalPlayer
+			local targetPlayer = game.Players:FindFirstChild(selectedPlayer)
+			if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+				if speaker.Character:FindFirstChildOfClass('Humanoid') and speaker.Character:FindFirstChildOfClass('Humanoid').SeatPart then
+					speaker.Character:FindFirstChildOfClass('Humanoid').Sit = false
+					wait(0.1)
+				end
+				local targetRoot = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
+				local speakerRoot = speaker.Character:FindFirstChild("HumanoidRootPart")
+				if targetRoot and speakerRoot then
+					speakerRoot.CFrame = targetRoot.CFrame + Vector3.new(3, 1, 0)
+				end
+			else
+				print("Target player or HumanoidRootPart not found.")
+			end
+		else
+			print("No player selected.")
+		end
+	end
+})
+
+-- Liên tục kiểm tra và cập nhật danh sách người chơi
+spawn(function()
+	while true do
+		updatePlayers()
+		wait(2) -- Kiểm tra và cập nhật mỗi 2 giây
+	end
+end)
+
+--// Services \\--
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+local Players = game:GetService("Players")
+local LPlayer = Players.LocalPlayer
+
+--// Variables \\--
+local Remotes = ReplicatedStorage.Remotes
+local StampAsset = Remotes.StampAsset
+local Plates = Workspace.Plates
+local LPlate
+
+for _, Plate in pairs(Plates:GetChildren()) do
+    if (Plate.Owner.Value == LPlayer) then
+        LPlate = Plate.Plate
+        break
+    end
+end
+
+local Module = {}
+
+function Module.Freeze(Part)
+    Module.Weld(Part)
+end
+
+function Module.Weld(Part)
+    print("Applying StampAsset to:", Part)
+
+    local args = {
+        56447956,
+        LPlate.CFrame + Vector3.new(0, 200, 0),
+        "{3ae31e60-5cd0-4d80-96b6-a1dd894ece8a}",
+        {Part},
+        0
+    }
+    StampAsset:InvokeServer(unpack(args))
+end
+
+local selectedPlayer = ""
+local playerList = {}
+
+-- Dropdown chọn người chơi
+local PlayerDropdown
+
+-- Hàm để cập nhật danh sách người chơi trong dropdown
+local function updatePlayers()
+    local newPlayerList = {}
+    for _, player in pairs(Players:GetPlayers()) do
+        table.insert(newPlayerList, player.Name)
+    end
+    
+    -- Cập nhật danh sách mới cho dropdown
+    playerList = newPlayerList
+    if PlayerDropdown then
+        PlayerDropdown:Refresh(playerList, true)
+    end
+end
+
+-- Tạo dropdown với danh sách người chơi
+PlayerDropdown = Section:AddDropdown({
+    Name = "Select target to freeze",
+    Default = "",
+    Options = playerList,
+    Callback = function(value)
+        selectedPlayer = value
+    end
+})
+
+-- Thêm nút để thực hiện hành động freeze
+Section:AddButton({
+    Name = "Freeze",
+    Callback = function()
+        local targetPlayer = Players:FindFirstChild(selectedPlayer)
+        if targetPlayer and targetPlayer.Character and targetPlayer.Character.PrimaryPart then
+            print("Freezing target:", targetPlayer.Name)
+            Module.Freeze(targetPlayer.Character.PrimaryPart)
+            OrionLib:MakeNotification({
+                Name = "Freeze",
+                Content = "Successfully frozen target: " .. targetPlayer.Name,
+                Image = "rbxassetid://4483345998",
+                Time = 5
+            })
+        else
+            OrionLib:MakeNotification({
+                Name = "Error",
+                Content = "Target not found or has no primary part!",
+                Image = "rbxassetid://4483345998",
+                Time = 5
+            })
+        end
+    end
+})
+
+-- Liên tục cập nhật danh sách người chơi
+spawn(function()
+    while true do
+        updatePlayers()
+        wait(2) -- Kiểm tra và cập nhật mỗi 2 giây
+    end
+end)
+
+
+local Tab = Window:MakeTab({
+	Name = "others",
+	Icon = "",
+	PremiumOnly = false
+})
+
+Tab:AddButton({
+	Name = "Infinite yield",
+	Callback = function()
+
+loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-Inf-yield-15355"))()
+
+  	end    
+})
+Tab:AddButton({
+	Name = "telekinesis",
+	Callback = function()
+loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-Telekinesis-12332"))()
+end
+})
+
+Tab:AddButton({
+	Name = "aimbot(for pvp)",
+	Callback = function()
+loadstring(game:HttpGet("https://rentry.co/n55gmtpi/raw", true))()
+end
+})
+
+
+local Tab = Window:MakeTab({
+	Name = "misc",
+	Icon = "",
+	PremiumOnly = false
+})
+Tab:AddButton({
+	Name = "UPDATE:null",
+	Callback = function()
+end
+})
+Tab:AddButton({
+	Name = "making a biggest update maybe take a few day",
+	Callback = function()
+
+end
+})
