@@ -9,10 +9,10 @@ local Tab = Window:MakeTab({
 })
 
 Tab:AddButton({
-    Name = "script by linhmc_new",
+    Name = "credit:linhmc_new",
     Callback = function()
         local args = {
-            [1] = "Script By Linhmc_new",
+            [1] = "script by LINHMC_NEW",
             [2] = "All"
         }
         game:GetService("ReplicatedStorage"):WaitForChild("DefaultChatSystemChatEvents"):WaitForChild("SayMessageRequest"):FireServer(unpack(args))
@@ -20,7 +20,178 @@ Tab:AddButton({
 })
 
 local Section = Tab:AddSection({
-    Name = "Operator"
+    Name = "admin"
+})
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local StampAsset = ReplicatedStorage.Remotes.StampAsset
+
+local function getRoot(character)
+    return character and character:FindFirstChild("HumanoidRootPart")
+end
+
+local function getChar()
+    return LocalPlayer.Character
+end
+
+local function getPlr(name)
+    for _, player in pairs(Players:GetPlayers()) do
+        if player.Name:lower():sub(1, #name) == name:lower() then
+            return player
+        end
+    end
+    return nil
+end
+
+local function applyStampToTarget(username, assetId)
+    local target = getPlr(username)
+    if not target or not target.Character or not getRoot(target.Character) then return end
+    
+    local LPlate
+    for _, Plate in pairs(game:GetService("Workspace").Plates:GetChildren()) do
+        if Plate.Owner.Value == LocalPlayer then
+            LPlate = Plate.Plate
+            break
+        end
+    end
+    
+    if LPlate then
+        StampAsset:InvokeServer(
+            assetId,
+            LPlate.CFrame - Vector3.new(0, 999999, 0),
+            "{3ee17b14-c66d-4cdd-8500-3782d1dceab5}",
+            {getRoot(target.Character)},
+            0
+        )
+    end
+end
+
+
+local targetName = ""
+
+Tab:AddTextbox({
+    Name = "Target Name",
+    Default = "",
+    TextDisappear = false,
+    Callback = function(value)
+        targetName = value
+    end
+})
+
+Tab:AddButton({
+    Name = "glitch speed",
+    Callback = function()
+        if targetName ~= "" then
+            applyStampToTarget(targetName, 41324945)
+        end
+    end
+})
+
+local Section = Tab:AddSection({
+    Name = ""
+})
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local StampAsset = ReplicatedStorage.Remotes.StampAsset
+
+local function getRoot(character)
+    return character and character:FindFirstChild("HumanoidRootPart")
+end
+
+local function getChar()
+    return LocalPlayer.Character
+end
+
+local function getPlr(name)
+    for _, player in pairs(Players:GetPlayers()) do
+        if player.Name:lower():sub(1, #name) == name:lower() then
+            return player
+        end
+    end
+    return nil
+end
+
+local function applyStampToTarget(username, assetId)
+    local target = getPlr(username)
+    if not target or not target.Character or not getRoot(target.Character) then return end
+    
+    local LPlate
+    for _, Plate in pairs(game:GetService("Workspace").Plates:GetChildren()) do
+        if Plate.Owner.Value == LocalPlayer then
+            LPlate = Plate.Plate
+            break
+        end
+    end
+    
+    if LPlate then
+        StampAsset:InvokeServer(
+            assetId,
+            LPlate.CFrame - Vector3.new(0, 5, 0),
+            "{3ee17b14-c66d-4cdd-8500-3782d1dceab5}",
+            {getRoot(target.Character)},
+            0
+        )
+    end
+end
+
+local function clientBring(username)
+    local target = getPlr(username)
+    if not target or not target.Character then return end
+    
+    local targetRoot = getRoot(target.Character)
+    local originalCFrame = targetRoot and targetRoot.CFrame
+    if not targetRoot or not originalCFrame then return end
+    
+    applyStampToTarget(username, 41324945) -- First StampAsset execution immediately
+    
+    task.wait(0.2) -- Delay before cbring starts
+    
+    local bringc
+    bringc = RunService.Heartbeat:Connect(function()
+        local charRoot = getRoot(getChar())
+        if targetRoot and charRoot then
+            targetRoot.CFrame = charRoot.CFrame + charRoot.CFrame.lookVector * 3
+        else
+            bringc:Disconnect()
+        end
+    end)
+    
+    task.wait(0.2) -- Additional delay before second stamp
+    applyStampToTarget(username, 56447956) -- Second StampAsset execution
+    
+    task.wait(1) -- Remaining cbring duration
+    if bringc then bringc:Disconnect() end
+    
+    if targetRoot then
+        targetRoot.CFrame = originalCFrame
+    end
+end
+
+
+local targetName = ""
+
+Tab:AddTextbox({
+    Name = "Target Name",
+    Default = "",
+    TextDisappear = false,
+    Callback = function(value)
+        targetName = value
+    end
+})
+
+Tab:AddButton({
+    Name = "Bring",
+    Callback = function()
+        if targetName ~= "" then
+            clientBring(targetName)
+        end
+    end
 })
 
 -- Tạo biến để kiểm soát vòng lặp
