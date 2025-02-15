@@ -723,7 +723,7 @@ Tab:AddButton({
 end
 })
 Tab:AddButton({
-	Name = "making a biggest update maybe take a few day",
+	Name = "the update is not done yet",
 	Callback = function()
 
 end
