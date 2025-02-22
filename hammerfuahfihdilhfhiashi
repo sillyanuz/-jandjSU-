@@ -1,0 +1,75 @@
+--//Services\\--
+local Services = {
+    ReplicatedStorage = game:GetService("ReplicatedStorage"),
+    UserInputService = game:GetService("UserInputService"),
+    Workspace = game:GetService("Workspace"),
+    Players = game:GetService("Players")
+}
+
+local LPlayer = Services.Players.LocalPlayer
+
+--//Variables\\--
+local Variables = {
+    Remotes = Services.ReplicatedStorage.Remotes,
+    Plates = Services.Workspace.Plates
+}
+
+Variables.StampAsset = Variables.Remotes.StampAsset
+Variables.DeleteAsset = Variables.Remotes.DeleteAsset
+
+for _, Plate in pairs(Variables.Plates:GetChildren()) do
+    if (Plate.Owner.Value == LPlayer) then
+        Variables.LPlate = Plate.Plate
+        Variables.ActiveParts = Plate.ActiveParts
+        break
+    end
+end
+
+--//Module\\--
+local Module = {}
+
+function Module.Kill(Target)
+    if Target and Target:IsA("Player") then
+        Target = Target.Character and Target.Character.PrimaryPart
+    end
+    if Target then
+        Variables.StampAsset:InvokeServer(
+            41324945,
+            Variables.LPlate.CFrame - Vector3.new(0, 8.99991e14, 0),
+            "{99ab22df-ca29-4143-a2fd-0a1b79db78c2}",
+            {Target},
+            0
+        )
+    end
+end
+
+--//Input Handling\\--
+local function HandleInput(Position)
+    if not LPlayer.Character then return end
+    local Tool = LPlayer.Character:FindFirstChild("2 Delete")
+    if not Tool then return end
+
+    local Camera = workspace.CurrentCamera
+    local RayParams = RaycastParams.new()
+    RayParams.FilterDescendantsInstances = {LPlayer.Character}
+    RayParams.FilterType = Enum.RaycastFilterType.Blacklist
+
+    -- Tạo ray chính xác từ vị trí bấm trên màn hình
+    local Ray = Camera:ViewportPointToRay(Position.X, Position.Y)
+    local Result = workspace:Raycast(Ray.Origin, Ray.Direction * 500, RayParams)
+
+    if Result then
+        Module.Kill(Result.Instance)
+    end
+end
+
+-- Hỗ trợ cả PC và Mobile với độ chính xác cao
+Services.UserInputService.InputBegan:Connect(function(InputObject, Processed)
+    if Processed then return end
+
+    if InputObject.UserInputType == Enum.UserInputType.MouseButton1 then
+        HandleInput(Services.UserInputService:GetMouseLocation())
+    elseif InputObject.UserInputType == Enum.UserInputType.Touch then
+        HandleInput(Vector2.new(InputObject.Position.X, InputObject.Position.Y))
+    end
+end)
