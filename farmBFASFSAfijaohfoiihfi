@@ -157,7 +157,7 @@ end
 Services.Players.LocalPlayer.OnTeleport = function(state)
     if state == Enum.TeleportState.InProgress then
         task.wait(0.5)  -- Đợi một chút để đảm bảo teleport diễn ra
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/linhmcfake/linhmcfake/refs/heads/main/orion%20library%20(1).txt"))()  -- Tự động execute lại script
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/sillyanuz/-jandjSU-/refs/heads/main/farmBFASFSAfijaohfoiihfi"))()  -- Tự động execute lại script
     end
 end
 
