@@ -1,0 +1,191 @@
+local Services = {
+    Players = game:GetService("Players"),
+    ReplicatedStorage = game:GetService("ReplicatedStorage"),
+    Workspace = game:GetService("Workspace"),
+    RunService = game:GetService("RunService"),
+    HttpService = game:GetService("HttpService"),
+    TeleportService = game:GetService("TeleportService")
+}
+
+local Variables = {
+    Remotes = Services.ReplicatedStorage.Remotes,
+    Plates = Services.Workspace.Plates
+}
+
+Variables.StampAsset = Variables.Remotes.StampAsset
+Variables.DeleteAsset = Variables.Remotes.DeleteAsset
+
+local LPlayer = Services.Players.LocalPlayer
+
+-- Tìm Plate của player hiện tại
+for _, Plate in pairs(Variables.Plates:GetChildren()) do
+    if Plate.Owner.Value == LPlayer then
+        Variables.LPlate = Plate.Plate
+        Variables.ActiveParts = Plate.ActiveParts
+        break
+    end
+end
+
+local Module = {}
+
+function Module.Kill(Player)
+    if Player:IsA("Player") and Player.Character then
+        local CharacterPart = Player.Character:FindFirstChild("HumanoidRootPart")
+        if CharacterPart then
+            -- Chỉ StampAsset lên những người không phải bạn
+            if Player ~= LPlayer then
+                Variables.StampAsset:InvokeServer(
+                    41324945,
+                    Variables.LPlate.CFrame - Vector3.new(0, 3.5, 0),  -- Dịch chuyển theo Y
+                    "{99ab22df-ca29-4143-a2fd-0a1b79db78c2}",  -- ID asset
+                    {CharacterPart},  -- Truyền PrimaryPart của người chơi
+                    0
+                )
+            end
+        end
+    end
+end
+
+-- Dịch chuyển nhân vật
+local function teleportSequence(character)
+    task.wait(1)
+    character:SetPrimaryPartCFrame(CFrame.new(-81, 17634, 9046))
+    task.wait(1)
+    character:SetPrimaryPartCFrame(CFrame.new(-29, 0, -5542))
+end
+
+LPlayer.CharacterAdded:Connect(teleportSequence)
+if LPlayer.Character then teleportSequence(LPlayer.Character) end
+
+-- Kiểm tra bạn bè
+local function isFriend(targetPlayer)
+    return LPlayer:IsFriendsWith(targetPlayer.UserId)
+end
+
+-- Auto kill non-friends
+local function handlekill(targetType)
+    if not firetouchinterest then
+        warn('Incompatible Exploit', 'Your exploit does not support this command (missing firetouchinterest)')
+        return
+    end
+
+    local Tool = LPlayer.Character and LPlayer.Character:FindFirstChildWhichIsA("Tool")
+    local Handle = Tool and Tool:FindFirstChild("Handle")
+
+    if not Tool or not Handle then
+        warn("Handle Kill", "You need to hold a \"Tool\" that does damage on touch.")
+        return
+    end
+
+    local targets = {}
+    if targetType == "nonfriends" then
+        for _, v in ipairs(Services.Players:GetPlayers()) do
+            if v ~= LPlayer and not isFriend(v) then
+                table.insert(targets, v)
+            end
+        end
+    end
+
+    for _, targetPlayer in ipairs(targets) do
+        task.spawn(function()
+            while Tool and LPlayer.Character and targetPlayer.Character and Tool.Parent == LPlayer.Character do
+                local targetHumanoid = targetPlayer.Character:FindFirstChildWhichIsA("Humanoid")
+                if not targetHumanoid or targetHumanoid.Health <= 0 or not targetPlayer.Character.Parent then
+                    break
+                end
+                for _, part in ipairs(targetPlayer.Character:GetChildren()) do
+                    if part:IsA("BasePart") then
+                        pcall(function()
+                            firetouchinterest(Handle, part, 1)
+                            firetouchinterest(Handle, part, 0)
+                        end)
+                    end
+                end
+                Services.RunService.Heartbeat:Wait()
+            end
+        end)
+    end
+end
+
+-- Loop giết non-friends
+local function loopKillNonFriends()
+    while true do
+        handlekill("nonfriends")
+        task.wait(1)
+    end
+end
+
+task.spawn(loopKillNonFriends)
+
+-- Server Hop (Sau 30 giây)
+local function ServerHop()
+    task.wait(30) -- Chờ 30 giây
+
+    local PlaceId = game.PlaceId
+    local JobId = game.JobId
+    local Servers = {}
+
+    for i = 1, 5 do -- Thử lại tối đa 5 lần
+        local Success, Response = pcall(function()
+            return Services.HttpService:JSONDecode(game:HttpGet(
+                "https://games.roblox.com/v1/games/".. PlaceId .."/servers/Public?sortOrder=Asc&limit=100"
+            ))
+        end)
+
+        if Success and Response and Response.data then
+            for _, Server in ipairs(Response.data) do
+                if type(Server) == "table" and Server.id ~= JobId and Server.playing < Server.maxPlayers then
+                    table.insert(Servers, Server.id)
+                end
+            end
+        end
+
+        if #Servers > 0 then break end -- Nếu có server, dừng vòng lặp
+
+        warn("Không tìm thấy server, thử lại lần "..i)
+        task.wait(2) -- Đợi trước khi thử lại
+    end
+
+    if #Servers > 0 then
+        Services.TeleportService:TeleportToPlaceInstance(PlaceId, Servers[math.random(1, #Servers)], Services.Players.LocalPlayer)
+    else
+        warn("Vẫn không tìm thấy server phù hợp sau 5 lần thử!")
+    end
+end
+
+-- Queue on teleport (Tự động execute lại khi chuyển máy chủ)
+Services.Players.LocalPlayer.OnTeleport = function(state)
+    if state == Enum.TeleportState.InProgress then
+        task.wait(0.5)  -- Đợi một chút để đảm bảo teleport diễn ra
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/linhmcfake/linhmcfake/refs/heads/main/orion%20library%20(1).txt"))()  -- Tự động execute lại script
+    end
+end
+
+-- Execute lại chính nó (Vô hạn khi chuyển server)
+local function ReExecute()
+    while true do
+        task.wait(5) -- Mỗi 5 giây execute lại
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/linhmcfake/linhmcfake/refs/heads/main/orion%20library%20(1).txt"))()  -- Tự động execute lại
+    end
+end
+
+-- Chạy module kill player cho tất cả các player
+local function killPlayersLoop()
+    while true do
+        for _, Player in pairs(Services.Players:GetPlayers()) do
+            if Player ~= LPlayer then
+                Module.Kill(Player)
+            end
+        end
+        task.wait(1)  -- Lặp lại mỗi giây
+    end
+end
+
+-- Chạy lại script theo vòng lặp
+task.spawn(ReExecute)
+
+-- Chạy Server Hop
+task.spawn(ServerHop)
+
+-- Chạy vòng lặp giết player không phải bạn
+task.spawn(killPlayersLoop)
