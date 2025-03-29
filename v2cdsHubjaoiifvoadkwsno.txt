@@ -1,0 +1,231 @@
+local redzlib = loadstring(game:HttpGet("https://raw.githubusercontent.com/linhmcfake/Script/refs/heads/main/Source.lua.txt"))()
+
+local Window = redzlib:MakeWindow({
+  Title = "Linhmc Hub True v2: Build and battle",
+  SubTitle = "by linhmc_new",
+  SaveFolder = "linhmc_hub_v2"
+})
+local Tab1 = Window:MakeTab({"General"})
+local Tab2 = Window:MakeTab({"Player"})
+local Tab3 = Window:MakeTab({"teleport"})
+Window:AddMinimizeButton({
+    Button = { Image = "rbxassetid://710143973869", BackgroundTransparency = 0 },
+    Corner = { CornerRadius = UDim.new(35, 1) },
+})
+
+Tab3:AddButton({"claim point", function()
+
+-- Lưu lại vị trí ban đầu của HumanoidRootPart
+local originalPosition = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame
+
+game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-65.8681411743164, 17634.498046875, 9359.7236328125)
+wait()
+game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-55.600982666015625, 17634.498046875, 9227.1826171875)
+wait()
+game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(-38.66141891479492, 17634.49609375, 9048.8037109375)
+wait()
+
+game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = originalPosition
+end
+})
+	
+Tab3:AddButton({"claim tool", function()
+  local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local root = character:FindFirstChild("HumanoidRootPart")
+
+local fakePositions = {
+    Vector3.new(-94, 17633, 9356),
+    Vector3.new(-87, 17634, 9224),
+    Vector3.new(-113, 17634, 9224),
+    Vector3.new(-81, 17633, 9046),
+    Vector3.new(-95, 17634, 9045),
+    Vector3.new(-124, 17633, 9046)
+}
+
+if root then
+    local originalPos = root.Position 
+
+    for _, pos in ipairs(fakePositions) do
+        root.CFrame = CFrame.new(pos)
+        task.wait(0.1)
+    end
+
+    root.CFrame = CFrame.new(originalPos)
+end
+
+end})
+
+Window:SelectTab(Tab1)
+local Paragraph = Tab1:AddParagraph({"BETA", "This is a beta script"})
+
+local Section = Tab1:AddSection({"OP!"})
+local SpeedValue = 16
+local JumpPowerValue = 50
+
+Tab2:AddSlider({
+  Name = "Speed",
+  Min = 16,
+  Max = 200,
+  Increase = 1,
+  Default = 16,
+  Callback = function(Value)
+    SpeedValue = Value
+    if game.Players.LocalPlayer.Character then
+      game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = SpeedValue
+    end
+  end
+})
+
+Tab2:AddSlider({
+  Name = "Jump Power",
+  Min = 50,
+  Max = 200,
+  Increase = 1,
+  Default = 50,
+  Callback = function(Value)
+    JumpPowerValue = Value
+    if game.Players.LocalPlayer.Character then
+      game.Players.LocalPlayer.Character.Humanoid.JumpPower = JumpPowerValue
+    end
+  end
+})
+
+game.Players.LocalPlayer.CharacterAdded:Connect(function(char)
+  local humanoid = char:WaitForChild("Humanoid")
+  humanoid.WalkSpeed = SpeedValue
+  humanoid.JumpPower = JumpPowerValue
+end)
+
+Window:SelectTab(Tab3)
+
+local AutoKillEnabled = false
+
+Tab1:AddToggle({
+  Name = "Bug Hammer",
+  Default = false,
+  Callback = function(Value)
+    AutoKillEnabled = Value
+  end
+})
+
+local Services = {
+    ReplicatedStorage = game:GetService("ReplicatedStorage"),
+    UserInputService = game:GetService("UserInputService"),
+    Workspace = game:GetService("Workspace"),
+    Players = game:GetService("Players")
+}
+
+local LPlayer = Services.Players.LocalPlayer
+
+local Variables = {
+    Remotes = Services.ReplicatedStorage.Remotes,
+    Plates = Services.Workspace.Plates,
+    CurrentTarget = nil
+}
+
+Variables.StampAsset = Variables.Remotes.StampAsset
+Variables.DeleteAsset = Variables.Remotes.DeleteAsset
+
+for _, Plate in pairs(Variables.Plates:GetChildren()) do
+    if (Plate.Owner.Value == LPlayer) then
+        Variables.LPlate = Plate.Plate
+        Variables.ActiveParts = Plate.ActiveParts
+        break
+    end
+end
+
+local Module = {}
+
+function Module.Kill(Target)
+    if AutoKillEnabled and Target and Target:IsA("Player") then
+        Target = Target.Character and Target.Character.PrimaryPart
+    end
+    if AutoKillEnabled and Target then
+        Variables.StampAsset:InvokeServer(
+            41324945,
+            Variables.LPlate.CFrame - Vector3.new(0, 8.99991e14, 0),
+            "{99ab22df-ca29-4143-a2fd-0a1b79db78c2}",
+            {Target},
+            0
+        )
+    end
+end
+
+local function HighlightTarget(Target)
+    if Variables.CurrentTarget ~= Target then
+        if Variables.CurrentTarget and Variables.CurrentTarget:FindFirstChild("Highlight") then
+            Variables.CurrentTarget.Highlight:Destroy()
+        end
+        
+        if Target then
+            local Highlight = Instance.new("Highlight")
+            Highlight.Name = "Highlight"
+            Highlight.Parent = Target
+            Highlight.FillTransparency = 1
+            Highlight.OutlineColor = Color3.fromRGB(0, 255, 0)
+            Variables.CurrentTarget = Target
+        else
+            Variables.CurrentTarget = nil
+        end
+    end
+end
+
+local function HandleInput(Position)
+    if not LPlayer.Character then return end
+    local Tool = LPlayer.Character:FindFirstChild("2 Delete")
+    if not Tool then return end
+
+    local Camera = workspace.CurrentCamera
+    local RayParams = RaycastParams.new()
+    RayParams.FilterDescendantsInstances = {LPlayer.Character}
+    RayParams.FilterType = Enum.RaycastFilterType.Blacklist
+
+    local RayOrigin = Camera.CFrame.Position
+    local RayDirection = (Camera:ScreenPointToRay(Position.X, Position.Y).Direction * 1000)
+    
+    local Result = workspace:Raycast(RayOrigin, RayDirection, RayParams)
+
+    HighlightTarget(Result and Result.Instance or nil)
+end
+
+Services.UserInputService.InputChanged:Connect(function(InputObject)
+    if InputObject.UserInputType == Enum.UserInputType.MouseMovement or InputObject.UserInputType == Enum.UserInputType.Touch then
+        HandleInput(Vector2.new(InputObject.Position.X, InputObject.Position.Y))
+    end
+end)
+
+Services.UserInputService.InputBegan:Connect(function(InputObject, Processed)
+    if Processed then return end
+
+    if InputObject.UserInputType == Enum.UserInputType.MouseButton1 then
+        Module.Kill(Variables.CurrentTarget)
+    elseif InputObject.UserInputType == Enum.UserInputType.Touch then
+        Module.Kill(Variables.CurrentTarget)
+  
+
+  end
+end)
+
+local teleports = {
+    {"VIP", CFrame.new(-85.99878692626953, 17633.498046875, 9349.5361328125)},
+    {"Mega VIP", CFrame.new(-86.5157241821289, 17633.498046875, 9215.1953125)},
+    {"Uber VIP", CFrame.new(-108.00, 17634.06, 9020.00)},
+    {"Secret Island", CFrame.new(-21.291458129882812, 0.3889467120170593, -5553.3359375)},
+    {"Leaderboard", CFrame.new(0.46162018179893494, 24.500017166137695, -220.42832946777344)}
+}
+
+Tab3:AddDropdown({
+    Name = "Teleport Locations",
+    Options = {"VIP", "Mega VIP", "Uber VIP", "Secret Island", "Leaderboard"},
+    Callback = function(Selected)
+        for _, location in pairs(teleports) do
+            if location[1] == Selected then
+                if game.Players.LocalPlayer.Character then
+                    game.Players.LocalPlayer.Character:SetPrimaryPartCFrame(location[2])
+                end
+                break
+            end
+        end
+    end
+})
