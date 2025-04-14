@@ -162,7 +162,7 @@ local function clientBring(username)
         end
     end)
     
-    task.wait(0.2) -- Additional delay before second stamp
+    task.wait(0.3) -- Additional delay before second stamp
     applyStampToTarget(username, 56447956) -- Second StampAsset execution
     
     task.wait(1) -- Remaining cbring duration
