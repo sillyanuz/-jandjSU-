@@ -229,3 +229,67 @@ Tab3:AddDropdown({
         end
     end
 })
+
+local StampSpikeEnabled = false
+local StampSpikeTaskCount = 10
+
+Tab1:AddSlider({
+  Name = "StampSpike Task/loop",
+  Min = 1,
+  Max = 100,
+  Increase = 1,
+  Default = 10,
+  Callback = function(val)
+    StampSpikeTaskManager = val
+  end
+})
+
+Tab1:AddToggle({
+  Name = "Loop StampSpike",
+  Default = false,
+  Callback = function(state)
+    StampSpikeEnabled = state
+
+    task.spawn(function()
+      local Remotes = game:GetService("ReplicatedStorage"):WaitForChild("Remotes")
+      local StampAsset = Remotes:WaitForChild("StampAsset")
+      local Plates = game:GetService("Workspace"):WaitForChild("Plates")
+      local LPlayer = game:GetService("Players").LocalPlayer
+      local LPlate
+
+      for _, Plate in ipairs(Plates:GetChildren()) do
+        if Plate:FindFirstChild("Owner") and Plate.Owner.Value == LPlayer then
+          LPlate = Plate:FindFirstChild("Plate")
+          break
+        end
+      end
+
+      while StampSpikeEnabled do
+        if LPlate then
+          local basePos = LPlate.Position
+
+          for i = 1, StampSpikeTaskCount do
+            task.spawn(function()
+              local offsetX = math.random(-40, 40)
+              local offsetZ = math.random(-40, 40)
+              local offsetY = 20 + math.random(-3, 3)
+
+              local stampPos = Vector3.new(basePos.X + offsetX, basePos.Y + offsetY, basePos.Z + offsetZ)
+              local stampCFrame = CFrame.new(stampPos)
+
+              StampAsset:InvokeServer(
+                41324904,
+                stampCFrame,
+                "{3ee17b14-c66d-4cdd-8500-3782d1dceab5}",
+                {},
+                0
+              )
+            end)
+          end
+        end
+
+        task.wait()
+      end
+    end)
+  end
+})
