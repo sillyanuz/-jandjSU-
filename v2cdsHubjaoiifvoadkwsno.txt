@@ -272,7 +272,7 @@ Tab1:AddToggle({
             task.spawn(function()
               local offsetX = math.random(-40, 40)
               local offsetZ = math.random(-40, 40)
-              local offsetY = 20 + math.random(-3, 3)
+              local offsetY = 200 + math.random(-10, 10)
 
               local stampPos = Vector3.new(basePos.X + offsetX, basePos.Y + offsetY, basePos.Z + offsetZ)
               local stampCFrame = CFrame.new(stampPos)
@@ -289,6 +289,83 @@ Tab1:AddToggle({
         end
 
         task.wait()
+      end
+    end)
+  end
+})
+
+local AutoClearEnabled = false
+local AutoClearDelay = 5
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local DeleteAsset = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("DeleteAsset")
+local LocalPlayer = Players.LocalPlayer
+
+Tab1:AddButton({
+  Name = "Clear Plate",
+  Description = "Clear Own Your Plate",
+  Callback = function()
+    local playerPlate = nil
+    for _, plate in pairs(workspace.Plates:GetChildren()) do
+      if plate:FindFirstChild("Owner") and plate.Owner.Value == LocalPlayer then
+        playerPlate = plate
+        break
+      end
+    end
+
+    if playerPlate and playerPlate:FindFirstChild("ActiveParts") then
+      for _, part in ipairs(playerPlate.ActiveParts:GetChildren()) do
+        task.spawn(function()
+          pcall(function()
+            DeleteAsset:InvokeServer(part)
+          end)
+        end)
+      end
+    else
+      warn("there is no plate or ActiveParts")
+    end
+  end
+})
+
+Tab1:AddSlider({
+  Name = "Auto Clear Delay",
+  Min = 1,
+  Max = 20,
+  Increase = 1,
+  Default = 5,
+  Callback = function(val)
+    AutoClearDelay = val
+  end
+})
+
+Tab1:AddToggle({
+  Name = "Auto Clear Plate",
+  Default = false,
+  Callback = function(state)
+    AutoClearEnabled = state
+
+    task.spawn(function()
+      while AutoClearEnabled do
+        local playerPlate = nil
+        for _, plate in pairs(workspace.Plates:GetChildren()) do
+          if plate:FindFirstChild("Owner") and plate.Owner.Value == LocalPlayer then
+            playerPlate = plate
+            break
+          end
+        end
+
+        if playerPlate and playerPlate:FindFirstChild("ActiveParts") then
+          for _, part in ipairs(playerPlate.ActiveParts:GetChildren()) do
+            task.spawn(function()
+              pcall(function()
+                DeleteAsset:InvokeServer(part)
+              end)
+            end)
+          end
+        end
+
+        task.wait(AutoClearDelay)
       end
     end)
   end
