@@ -103,7 +103,6 @@ local AutoKillEnabled = false
 
 Tab1:AddToggle({
   Name = "Bug Hammer",
-  Description = "Can Make Something Disappear!",
   Default = false,
   Callback = function(Value)
     AutoKillEnabled = Value
@@ -236,11 +235,10 @@ local StampSpikeTaskCount = 10
 
 Tab1:AddSlider({
   Name = "StampSpike Task/loop",
-   Description = "1 Is Recommended!",
   Min = 1,
-  Max = 20,
+  Max = 100,
   Increase = 1,
-  Default = 1,
+  Default = 10,
   Callback = function(val)
     StampSpikeTaskManager = val
   end
@@ -248,7 +246,6 @@ Tab1:AddSlider({
 
 Tab1:AddToggle({
   Name = "Loop StampSpike",
-  Description = "Only use it for FUN!",
   Default = false,
   Callback = function(state)
     StampSpikeEnabled = state
@@ -307,7 +304,7 @@ local LocalPlayer = Players.LocalPlayer
 
 Tab1:AddButton({
   Name = "Clear Plate",
-  Description = "Clear Your Own Plate",
+  Description = "Clear Own Your Plate",
   Callback = function()
     local playerPlate = nil
     for _, plate in pairs(workspace.Plates:GetChildren()) do
@@ -372,4 +369,79 @@ Tab1:AddToggle({
       end
     end)
   end
+})
+
+local Services = {
+    Players = game:GetService("Players"),
+    ReplicatedStorage = game:GetService("ReplicatedStorage"),
+    Workspace = game:GetService("Workspace")
+}
+
+local LPlayer = Services.Players.LocalPlayer
+
+local Remotes = Services.ReplicatedStorage:WaitForChild("Remotes")
+local StampAsset = Remotes:WaitForChild("StampAsset")
+local DeleteAsset = Remotes:WaitForChild("DeleteAsset")
+
+local Plates = Services.Workspace:WaitForChild("Plates")
+local LPlate = nil
+local ActiveParts = nil
+
+for _, Plate in pairs(Plates:GetChildren()) do
+    if Plate:FindFirstChild("Owner") and Plate.Owner.Value == LPlayer then
+        LPlate = Plate:FindFirstChild("Plate")
+        ActiveParts = Plate:FindFirstChild("ActiveParts")
+        break
+    end
+end
+
+local TargetName = ""
+
+Tab1:AddTextBox({
+    Name = "Bring Target",
+    PlaceholderText = "Enter partial name",
+    Callback = function(Value)
+        TargetName = Value:lower()
+    end
+})
+
+Tab1:AddButton({
+    Name = "Bring",
+
+    Callback = function()
+        if not LPlate then return end
+
+        for _, Player in pairs(Services.Players:GetPlayers()) do
+            if Player ~= LPlayer and (Player.Name:lower():find(TargetName) or Player.DisplayName:lower():find(TargetName)) then
+                local Char = Player.Character
+                if Char and Char:FindFirstChild("HumanoidRootPart") then
+                    StampAsset:InvokeServer(
+                        41324945,
+                        LPlate.CFrame + Vector3.new(0, -20, 0),
+                        "{99ab22df-ca29-4143-a2fd-0a1b79db78c2}",
+                        {Char.HumanoidRootPart},
+                        0
+                    )
+
+                    task.delay(0.5, function()
+                        pcall(function()
+                            Char:PivotTo(LPlayer.Character:GetPivot()) -- Bring client-side
+                        end)
+wait(0.1)
+                        if ActiveParts then
+                            for _, part in ipairs(ActiveParts:GetChildren()) do
+                                task.spawn(function()
+                                    pcall(function()
+                                        DeleteAsset:InvokeServer(part)
+                                    end)
+                                end)
+                            end
+                        else
+                            warn("No ActiveParts")
+                        end
+                    end)
+                end
+            end
+        end
+    end
 })
