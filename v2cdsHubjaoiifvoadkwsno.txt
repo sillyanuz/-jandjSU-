@@ -229,6 +229,7 @@ Tab3:AddDropdown({
         end
     end
 })
+local Section = Tab1:AddSection({ "BUILDING" })
 
 local StampSpikeEnabled = false
 local StampSpikeTaskCount = 10
@@ -293,6 +294,8 @@ Tab1:AddToggle({
     end)
   end
 })
+
+
 
 local AutoClearEnabled = false
 local AutoClearDelay = 5
@@ -370,7 +373,7 @@ Tab1:AddToggle({
     end)
   end
 })
-
+local Section = Tab1:AddSection({ "BRING" })
 local Services = {
     Players = game:GetService("Players"),
     ReplicatedStorage = game:GetService("ReplicatedStorage"),
