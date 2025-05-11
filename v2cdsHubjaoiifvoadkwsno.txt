@@ -103,6 +103,7 @@ local AutoKillEnabled = false
 
 Tab1:AddToggle({
   Name = "Bug Hammer",
+  Description = "Can Make Something Disappear!",
   Default = false,
   Callback = function(Value)
     AutoKillEnabled = Value
