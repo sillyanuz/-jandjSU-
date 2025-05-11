@@ -448,3 +448,88 @@ wait(0.1)
         end
     end
 })
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+local LPlayer = Players.LocalPlayer
+
+local StampAsset = ReplicatedStorage.Remotes.StampAsset
+local DeleteAsset = ReplicatedStorage.Remotes.DeleteAsset
+
+local LPlate
+for _, v in pairs(Workspace.Plates:GetChildren()) do
+    if v:FindFirstChild("Owner") and v.Owner.Value == LPlayer then
+        LPlate = v.Plate
+        break
+    end
+end
+
+local TargetPos = Vector3.new(-4, 22, -5593)
+local AutoKillEnabled = false
+
+Tab1:AddSection({"HARDCORE"})
+
+Tab1:AddToggle({
+    Name = "Secret Island Jail",
+    Default = false,
+    Callback = function(state)
+        AutoKillEnabled = state
+        if state then
+            StartLoop()
+        end
+    end
+})
+
+function StampPlayer(player)
+    if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then return end
+    local hrp = player.Character.HumanoidRootPart
+    local stamped = StampAsset:InvokeServer(
+        41324945,
+        LPlate.CFrame,
+        "{99ab22df-ca29-4143-a2fd-0a1b79db78c2}",
+        {hrp},
+        0
+    )
+    return stamped
+end
+
+function DeleteAllParts()
+    local plate
+    for _, p in pairs(Workspace.Plates:GetChildren()) do
+        if p:FindFirstChild("Owner") and p.Owner.Value == LPlayer then
+            plate = p
+            break
+        end
+    end
+    if plate and plate:FindFirstChild("ActiveParts") then
+        for _, part in pairs(plate.ActiveParts:GetChildren()) do
+            task.spawn(function()
+                pcall(function()
+                    DeleteAsset:InvokeServer(part)
+                end)
+            end)
+        end
+    end
+end
+
+function StartLoop()
+    task.spawn(function()
+        while AutoKillEnabled do
+            for _, plr in pairs(Players:GetPlayers()) do
+                if plr ~= LPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+                    local hrp = plr.Character.HumanoidRootPart
+                    local distance = (hrp.Position - TargetPos).Magnitude
+                    if distance > 70 then
+                        StampPlayer(plr)
+                        task.wait(0.2)
+                        hrp.CFrame = CFrame.new(TargetPos)
+                        task.wait(0.1)
+                        DeleteAllParts()
+                    end
+                end
+            end
+            task.wait()
+        end
+    end)
+end
