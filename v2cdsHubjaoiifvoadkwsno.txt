@@ -235,10 +235,11 @@ local StampSpikeTaskCount = 10
 
 Tab1:AddSlider({
   Name = "StampSpike Task/loop",
+   Description = "1 Is Recommended!",
   Min = 1,
-  Max = 100,
+  Max = 20,
   Increase = 1,
-  Default = 10,
+  Default = 1,
   Callback = function(val)
     StampSpikeTaskManager = val
   end
@@ -246,6 +247,7 @@ Tab1:AddSlider({
 
 Tab1:AddToggle({
   Name = "Loop StampSpike",
+  Description = "Only use it for FUN!",
   Default = false,
   Callback = function(state)
     StampSpikeEnabled = state
