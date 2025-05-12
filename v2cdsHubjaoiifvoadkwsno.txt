@@ -374,6 +374,7 @@ Tab1:AddToggle({
   end
 })
 local Section = Tab1:AddSection({ "BRING" })
+
 local Services = {
     Players = game:GetService("Players"),
     ReplicatedStorage = game:GetService("ReplicatedStorage"),
@@ -410,14 +411,22 @@ Tab1:AddTextBox({
 
 Tab1:AddButton({
     Name = "Bring",
-
     Callback = function()
         if not LPlate then return end
 
         for _, Player in pairs(Services.Players:GetPlayers()) do
             if Player ~= LPlayer and (Player.Name:lower():find(TargetName) or Player.DisplayName:lower():find(TargetName)) then
                 local Char = Player.Character
-                if Char and Char:FindFirstChild("HumanoidRootPart") then
+                local Humanoid = Char and Char:FindFirstChildWhichIsA("Humanoid")
+
+                if Char and Char:FindFirstChild("HumanoidRootPart") and Humanoid then
+                    
+                    -- Đợi nếu người chơi đang ngồi
+                    while Humanoid.Sit do
+                        task.wait(0.1)
+                    end
+
+                    -- Stamp asset
                     StampAsset:InvokeServer(
                         41324945,
                         LPlate.CFrame + Vector3.new(0, -20, 0),
@@ -426,11 +435,14 @@ Tab1:AddButton({
                         0
                     )
 
+                    -- Bring + Xoá asset
                     task.delay(0.5, function()
                         pcall(function()
-                            Char:PivotTo(LPlayer.Character:GetPivot()) -- Bring client-side
+                            Char:PivotTo(LPlayer.Character:GetPivot())
                         end)
-wait(0.1)
+
+                        task.wait(0.1)
+
                         if ActiveParts then
                             for _, part in ipairs(ActiveParts:GetChildren()) do
                                 task.spawn(function()
@@ -448,6 +460,7 @@ wait(0.1)
         end
     end
 })
+
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -518,14 +531,17 @@ function StartLoop()
         while AutoKillEnabled do
             for _, plr in pairs(Players:GetPlayers()) do
                 if plr ~= LPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-                    local hrp = plr.Character.HumanoidRootPart
-                    local distance = (hrp.Position - TargetPos).Magnitude
-                    if distance > 70 then
-                        StampPlayer(plr)
-                        task.wait(0.2)
-                        hrp.CFrame = CFrame.new(TargetPos)
-                        task.wait(0.1)
-                        DeleteAllParts()
+                    local humanoid = plr.Character:FindFirstChildOfClass("Humanoid")
+                    if humanoid and humanoid.SeatPart == nil then -- không ngồi
+                        local hrp = plr.Character.HumanoidRootPart
+                        local distance = (hrp.Position - TargetPos).Magnitude
+                        if distance > 70 then
+                            StampPlayer(plr)
+                            task.wait(0.2)
+                            hrp.CFrame = CFrame.new(TargetPos)
+                            task.wait(0.1)
+                            DeleteAllParts()
+                        end
                     end
                 end
             end
