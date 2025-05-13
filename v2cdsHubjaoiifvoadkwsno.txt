@@ -307,7 +307,7 @@ local LocalPlayer = Players.LocalPlayer
 
 Tab1:AddButton({
   Name = "Clear Plate",
-  Description = "Clear Own Your Plate",
+  Description = "Clear Your Plate",
   Callback = function()
     local playerPlate = nil
     for _, plate in pairs(workspace.Plates:GetChildren()) do
