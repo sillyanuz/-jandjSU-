@@ -65,6 +65,7 @@ local JumpPowerValue = 50
 
 Tab2:AddSlider({
   Name = "Speed",
+  Description = "Your Speed!",
   Min = 16,
   Max = 200,
   Increase = 1,
@@ -79,6 +80,7 @@ Tab2:AddSlider({
 
 Tab2:AddSlider({
   Name = "Jump Power",
+  Description = "Your Jump Power!",
   Min = 50,
   Max = 200,
   Increase = 1,
@@ -103,6 +105,7 @@ local AutoKillEnabled = false
 
 Tab1:AddToggle({
   Name = "Bug Hammer",
+  Description = "You Can Move Another Building!",
   Default = false,
   Callback = function(Value)
     AutoKillEnabled = Value
@@ -216,7 +219,7 @@ local teleports = {
 }
 
 Tab3:AddDropdown({
-    Name = "Teleport Locations",
+    Name = "Locations",
     Options = {"VIP", "Mega VIP", "Uber VIP", "Secret Island", "Leaderboard"},
     Callback = function(Selected)
         for _, location in pairs(teleports) do
@@ -236,6 +239,7 @@ local StampSpikeTaskCount = 10
 
 Tab1:AddSlider({
   Name = "StampSpike Task/loop",
+  Description = "1 is recommended",
   Min = 1,
   Max = 100,
   Increase = 1,
@@ -333,6 +337,7 @@ Tab1:AddButton({
 
 Tab1:AddSlider({
   Name = "Auto Clear Delay",
+  Description = "1 = 1 second",
   Min = 1,
   Max = 20,
   Increase = 1,
@@ -344,6 +349,7 @@ Tab1:AddSlider({
 
 Tab1:AddToggle({
   Name = "Auto Clear Plate",
+  Description = "Loop Clear By Enable This Toggle",
   Default = false,
   Callback = function(state)
     AutoClearEnabled = state
@@ -404,6 +410,7 @@ local TargetName = ""
 Tab1:AddTextBox({
     Name = "Bring Target",
     PlaceholderText = "Enter partial name",
+    Description = "Target By Enter A Player Name",
     Callback = function(Value)
         TargetName = Value:lower()
     end
@@ -411,6 +418,7 @@ Tab1:AddTextBox({
 
 Tab1:AddButton({
     Name = "Bring",
+    Description = "Start Bring",
     Callback = function()
         if not LPlate then return end
 
@@ -485,6 +493,7 @@ Tab1:AddSection({"HARDCORE"})
 
 Tab1:AddToggle({
     Name = "Secret Island Jail",
+    Description = "Look Like A PVP Arena",
     Default = false,
     Callback = function(state)
         AutoKillEnabled = state
