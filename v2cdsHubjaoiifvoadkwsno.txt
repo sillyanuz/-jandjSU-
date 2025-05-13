@@ -1,4 +1,4 @@
-\local redzlib = loadstring(game:HttpGet("https://raw.githubusercontent.com/linhmcfake/Script/refs/heads/main/Source.lua.txt"))()
+local redzlib = loadstring(game:HttpGet("https://raw.githubusercontent.com/linhmcfake/Script/refs/heads/main/Source.lua.txt"))()
 
 local Window = redzlib:MakeWindow({
   Title = "Linhmc Hub True v2: Build and battle",
