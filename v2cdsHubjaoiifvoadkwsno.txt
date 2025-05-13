@@ -1,4 +1,4 @@
-local redzlib = loadstring(game:HttpGet("https://raw.githubusercontent.com/linhmcfake/Script/refs/heads/main/Source.lua.txt"))()
+\local redzlib = loadstring(game:HttpGet("https://raw.githubusercontent.com/linhmcfake/Script/refs/heads/main/Source.lua.txt"))()
 
 local Window = redzlib:MakeWindow({
   Title = "Linhmc Hub True v2: Build and battle",
@@ -62,6 +62,7 @@ local Paragraph = Tab1:AddParagraph({"BETA", "This is a beta script"})
 local Section = Tab1:AddSection({"OP!"})
 local SpeedValue = 16
 local JumpPowerValue = 50
+local player = game.Players.LocalPlayer
 
 Tab2:AddSlider({
   Name = "Speed",
@@ -72,9 +73,6 @@ Tab2:AddSlider({
   Default = 16,
   Callback = function(Value)
     SpeedValue = Value
-    if game.Players.LocalPlayer.Character then
-      game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = SpeedValue
-    end
   end
 })
 
@@ -87,17 +85,33 @@ Tab2:AddSlider({
   Default = 50,
   Callback = function(Value)
     JumpPowerValue = Value
-    if game.Players.LocalPlayer.Character then
-      game.Players.LocalPlayer.Character.Humanoid.JumpPower = JumpPowerValue
-    end
   end
 })
 
-game.Players.LocalPlayer.CharacterAdded:Connect(function(char)
+player.CharacterAdded:Connect(function(char)
   local humanoid = char:WaitForChild("Humanoid")
   humanoid.WalkSpeed = SpeedValue
   humanoid.JumpPower = JumpPowerValue
 end)
+
+task.spawn(function()
+  while true do
+    task.wait(1)
+    local char = player.Character
+    if char then
+      local humanoid = char:FindFirstChildOfClass("Humanoid")
+      if humanoid then
+        if humanoid.WalkSpeed ~= SpeedValue then
+          humanoid.WalkSpeed = SpeedValue
+        end
+        if humanoid.JumpPower ~= JumpPowerValue then
+          humanoid.JumpPower = JumpPowerValue
+        end
+      end
+    end
+  end
+end)
+
 
 Window:SelectTab(Tab3)
 
