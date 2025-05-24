@@ -35,12 +35,12 @@ local character = player.Character or player.CharacterAdded:Wait()
 local root = character:FindFirstChild("HumanoidRootPart")
 
 local fakePositions = {
-    Vector3.new(-94, 17633, 9356),
-    Vector3.new(-87, 17634, 9224),
-    Vector3.new(-113, 17634, 9224),
-    Vector3.new(-81, 17633, 9046),
-    Vector3.new(-95, 17634, 9045),
-    Vector3.new(-124, 17633, 9046)
+    Vector3.new(-124, 17634, 9047),
+    Vector3.new(-96, 17634, 9047),
+    Vector3.new(-82, 17634, 9047),
+    Vector3.new(-113, 17634, 9225),
+    Vector3.new(-88, 17634, 9225),
+    Vector3.new(-95, 17634, 9358),
 }
 
 if root then
@@ -63,6 +63,8 @@ local Section = Tab1:AddSection({"OP!"})
 local SpeedValue = 16
 local JumpPowerValue = 50
 local player = game.Players.LocalPlayer
+
+local Section = Tab2:AddSection({ "CLIENT" })
 
 Tab2:AddSlider({
   Name = "Speed",
@@ -507,7 +509,7 @@ Tab1:AddSection({"HARDCORE"})
 
 Tab1:AddToggle({
     Name = "Secret Island Jail",
-    Description = "Look Like A PVP Arena",
+    Description = "Looks like a PVP arena",
     Default = false,
     Callback = function(state)
         AutoKillEnabled = state
@@ -572,3 +574,52 @@ function StartLoop()
         end
     end)
 end
+
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+local antiflingConn
+Tab2:AddToggle({
+    Name = "Anti Fling",
+    Description = "From Infinite yield source",
+    Default = true,
+    Callback = function(state)
+        if antiflingConn then antiflingConn:Disconnect() antiflingConn = nil end
+        if state then
+            antiflingConn = RunService.Stepped:Connect(function()
+                for _, player in pairs(Players:GetPlayers()) do
+                    if player ~= LocalPlayer and player.Character then
+                        for _, v in pairs(player.Character:GetDescendants()) do
+                            if v:IsA("BasePart") then
+                                v.CanCollide = false
+                            end
+                        end
+                    end
+                end
+            end)
+        end
+    end
+})
+
+local noclipConn
+Tab2:AddToggle({
+    Name = "Noclip",
+    Description = "From Infinite yield source",
+    Default = true,
+    Callback = function(state)
+        if noclipConn then noclipConn:Disconnect() noclipConn = nil end
+        if state then
+            noclipConn = RunService.Stepped:Connect(function()
+                local char = LocalPlayer.Character
+                if char then
+                    for _, part in pairs(char:GetDescendants()) do
+                        if part:IsA("BasePart") and part.CanCollide == true then
+                            part.CanCollide = false
+                        end
+                    end
+                end
+            end)
+        end
+    end
+})
