@@ -8,6 +8,7 @@ local Window = redzlib:MakeWindow({
 local Tab1 = Window:MakeTab({"General"})
 local Tab2 = Window:MakeTab({"Player"})
 local Tab3 = Window:MakeTab({"teleport"})
+local Tab4 = Window:MakeTab({"Misc"})
 Window:AddMinimizeButton({
     Button = { Image = "rbxassetid://710143973869", BackgroundTransparency = 0 },
     Corner = { CornerRadius = UDim.new(35, 1) },
@@ -623,3 +624,101 @@ Tab2:AddToggle({
         end
     end
 })
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local VirtualUser = game:GetService("VirtualUser")
+
+local antiAfkConn
+Tab4:AddToggle({
+    Name = "Anti AFK",
+    Default = true,
+    Callback = function(state)
+        if antiAfkConn then
+            antiAfkConn:Disconnect()
+            antiAfkConn = nil
+        end
+
+        if state then
+            local GC = getconnections or get_signal_cons
+            if GC then
+                for i, v in pairs(GC(LocalPlayer.Idled)) do
+                    if v.Disable then
+                        v:Disable()
+                    elseif v.Disconnect then
+                        v:Disconnect()
+                    end
+                end
+            else
+                antiAfkConn = LocalPlayer.Idled:Connect(function()
+                    VirtualUser:CaptureController()
+                    VirtualUser:ClickButton2(Vector2.new())
+                end)
+            end
+        end
+    end
+})
+
+Tab4:AddButton({
+    Name = "ServerHop",
+    Callback = function()
+        local HttpService = game:GetService("HttpService")
+        local TeleportService = game:GetService("TeleportService")
+        local PlaceId = game.PlaceId
+        local JobId = game.JobId
+
+        local success, response = pcall(function()
+            return syn and syn.request or http_request or request or http and http.request or nil
+        end)
+
+        if not success or not response then
+            notify("ServerHop", "Executor không hỗ trợ HTTP Request")
+            return
+        end
+
+        local req = response({
+            Url = ("https://games.roblox.com/v1/games/%d/servers/Public?sortOrder=Desc&limit=100&excludeFullGames=true"):format(PlaceId),
+            Method = "GET"
+        })
+
+        local body = HttpService:JSONDecode(req.Body)
+        if body and body.data then
+            for _, server in ipairs(body.data) do
+                if server.id ~= JobId and server.playing < server.maxPlayers then
+                    TeleportService:TeleportToPlaceInstance(PlaceId, server.id, Players.LocalPlayer)
+                    return
+                end
+            end
+        end
+
+        notify("ServerHop", "Không tìm thấy server phù hợp")
+    end
+})
+
+local fps = 0
+local frameCounter = 0
+local lastUpdate = tick()
+
+local joinClock = os.clock()
+local FpsParagraph = Tab4:AddParagraph({"avgFPS", "..."})
+local ServerUptimeParagraph = Tab4:AddParagraph({"Joined Time", "..."})
+
+RunService.RenderStepped:Connect(function()
+	frameCounter += 1
+	if tick() - lastUpdate >= 1 then
+		lastUpdate = tick()
+		fps = frameCounter
+		frameCounter = 0
+
+		local function formatTime(seconds)
+			local h = math.floor(seconds / 3600)
+			local m = math.floor((seconds % 3600) / 60)
+			local s = math.floor(seconds % 60)
+			return string.format("%02dh:%02dm:%02ds", h, m, s)
+		end
+
+		FpsParagraph:Set("avgFPS: " .. fps)
+		ServerUptimeParagraph:Set("Joined Server Time: " .. formatTime(workspace.DistributedGameTime))
+		JoinTimeParagraph:Set("You Joined: " .. formatTime(os.clock() - joinClock) .. " ago")
+	end
+end)
